@@ -143,6 +143,24 @@ Paths to the input dataset, the pre-trained model checkpoints (LaMa Places2 weig
 
 ---
 
+## Results at a glance
+
+The qualitative ranking, confirmed by visual inspection across the 661 broken-body sculptures of the corpus, is **SD > MAT > LaMa**:
+
+- **SD with ControlNet** is the only paradigm that generates a reconstruction whose shape and details (proportions, pose, marble texture, shading) are its own and not bound to the silhouette of the mask. It is the most realistic of the three on well-masked cases. On edge cases where the mask is misplaced, it can fall back to non-arm body parts (wings, halos) or non-body objects (furniture) — on those cases the bottleneck is the mask, not the generator.
+
+- **MAT with pipeline** commits to a reconstruction inside the mask: it fills the masked region with marble of coherent colour and reasonable texture, but the shape of the reconstruction is the silhouette of the anatomical mask itself rather than an independent anatomical commitment, and it consistently leaves a visible boundary gap at the joint between the surviving body and the reconstructed limb.
+
+- **LaMa with pipeline** does not produce a visible reconstruction (the model converges to leaving the input essentially unmodified). The intermediate v7 variant of LaMa, with DensePose conditioning but without the adversarial fine-tuning, isolates the adversarial fine-tuning as the specific component that breaks LaMa under a discriminator that learned the background as a shortcut.
+
+The pipeline also generalises across materials beyond white marble (limestone, oxidised green bronze) and across moderate deviations from realistic anatomy, with the same qualitative behaviour as on the standard classical-sculpture cases.
+
+### A note on the quantitative numbers
+
+The recomposition step of the pipeline did not behave as intended at evaluation time: a colour-threshold heuristic assumed a black background while rembg+SAM exports a white one, so the with-pipeline outputs were evaluated on a uniform white background instead of the museum background that the recomposition was designed to restore. The bias goes against the pipeline (the with-pipeline outputs are compared against a museum-background reference, so a uniform-background output looks artificially further from it), so the FID and PatchGAN improvements reported in the project memoir are conservative; the chroma a/b and absolute delta-L metrics are computed only inside the body region and are not affected. The qualitative findings above are also unaffected and stand independently of any re-evaluation. A re-evaluation with a corrected recomposition is listed as a future-work item. The full numerical tables and their interpretation (including the trace-term mechanism that explains why LaMa's FID drops despite producing no visible reconstruction) are discussed in the project memoir.
+
+---
+
 ## Dataset
 
 The project uses two complementary datasets:
